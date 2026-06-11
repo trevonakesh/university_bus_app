@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchStudents, fetchPollState, updatePollState, addStudent, removeStudent } from '../services/api';
 
-export default function DriverView() {
+export default function DriverView({ currentUser }) {
   const [students, setStudents] = useState([]);
   const [poll, setPoll] = useState({ isOpen: false });
   const [loading, setLoading] = useState(true);

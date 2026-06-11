@@ -5,6 +5,10 @@ const notifyUpdate = () => {
   window.dispatchEvent(new Event('appDataChanged'));
 };
 
+const notifyAuth = () => {
+  window.dispatchEvent(new Event('authStateChanged'));
+};
+
 const getStoredStudents = () => {
   const stored = localStorage.getItem('bus_students');
   if (stored) return JSON.parse(stored);
@@ -62,9 +66,46 @@ export const updateStudentStatus = async (id, status) => {
   return students[index];
 };
 
+// --- AUTHENTICATION MOCK ---
+
+export const getCurrentUser = () => {
+  const stored = localStorage.getItem('bus_current_user');
+  return stored ? JSON.parse(stored) : null;
+};
+
+export const login = async (name, role) => {
+  if (role === 'driver') {
+    const user = { id: 'driver-1', name: name || 'Driver Profile', role: 'driver' };
+    localStorage.setItem('bus_current_user', JSON.stringify(user));
+    notifyAuth();
+    return user;
+  }
+  
+  if (role === 'student') {
+    const students = getStoredStudents();
+    const student = students.find(s => s.name.toLowerCase() === name.toLowerCase().trim());
+    if (student) {
+      const user = { ...student, role: 'student' };
+      localStorage.setItem('bus_current_user', JSON.stringify(user));
+      notifyAuth();
+      return user;
+    } else {
+      throw new Error('Student not found. Please ask the driver to register you first.');
+    }
+  }
+};
+
+export const logout = async () => {
+  localStorage.removeItem('bus_current_user');
+  notifyAuth();
+};
+
 // Listen for updates from other tabs
 window.addEventListener('storage', (e) => {
   if (e.key === 'bus_students' || e.key === 'bus_poll') {
     notifyUpdate();
+  }
+  if (e.key === 'bus_current_user') {
+    notifyAuth();
   }
 });
